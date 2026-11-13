@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123b35"><title>FitFlow Daily Fitness</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--green:#123b35;--mint:#dff4e9;--gold:#f2c66d;--ink:#172522;--muted:#65736e}
+*{box-sizing:border-box}body{margin:0;background:#f3f7f4;color:var(--ink);font-family:system-ui,-apple-system,sans-serif}
+header{background:var(--green);color:white;padding:25px 18px 30px;border-radius:0 0 25px 25px}
+header small{opacity:.8}h1{margin:7px 0;font-size:27px}.date{opacity:.8;font-size:13px}
+main{max-width:760px;margin:auto;padding:16px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.card{background:white;border-radius:17px;padding:16px;box-shadow:0 3px 15px #163b3510;margin-bottom:12px}
+.card h2{font-size:16px;margin:0 0 12px}.metric{font-size:25px;font-weight:750;color:var(--green)}
+.muted{color:var(--muted);font-size:12px}label{font-size:13px;color:var(--muted);display:block;margin:9px 0 5px}
+input{width:100%;padding:11px;border:1px solid #d9e4dd;border-radius:10px;font:inherit;background:#fbfdfb}
+button{border:0;border-radius:11px;background:var(--green);color:white;padding:11px 14px;font-weight:650;margin-top:10px;cursor:pointer}
+button.secondary{background:var(--mint);color:var(--green)}.full{width:100%}
+.progress{height:9px;background:#e7eee9;border-radius:20px;overflow:hidden;margin-top:9px}.bar{height:100%;background:#45a878;width:0}
+.item{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #edf1ed}.item:last-child{border:0}
+.item input{width:auto}.quote{background:#fff4d9;border-radius:15px;padding:15px;font-size:14px}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
+</style></head>
+<body>
+<header><small>आपकी सेहत, आपकी रोज़ की प्रगति</small><h1>🌿 FitFlow Daily</h1><div class="date" id="today"></div></header>
+<main>
+<div class="grid">
+<section class="card"><div class="muted">आज का पानी</div><div class="metric"><span id="water">0</span><small> / 8</small></div><div class="progress"><div class="bar" id="waterbar"></div></div><button class="full" onclick="addWater()">+ एक गिलास</button></section>
+<section class="card"><div class="muted">आज के कदम</div><div class="metric" id="stepsView">0</div><div class="muted">लक्ष्य: 10,000</div><div class="progress"><div class="bar" id="stepsbar"></div></div></section>
+<section class="card"><div class="muted">आज का वजन</div><div class="metric" id="weightView">—</div><div class="muted">किलोग्राम</div></section>
+<section class="card"><div class="muted">प्रोटीन</div><div class="metric"><span id="proteinView">0</span><small> g</small></div><div class="muted">आज का कुल</div></section>
+</div>
+<section class="card"><h2>📊 आज की एंट्री</h2>
+<label>वजन (किलो)</label><input id="weight" type="number" step=".1" placeholder="जैसे 72.5">
+<label>कदम</label><input id="steps" type="number" placeholder="जैसे 6500">
+<label>खाने से प्रोटीन (ग्राम)</label><input id="protein" type="number" placeholder="जैसे 65">
+<button class="full" onclick="saveLog()">आज का रिकॉर्ड सेव करें</button><div class="muted" id="saved" aria-live="polite"></div></section>
+<section class="card"><h2>🍽️ भोजन लॉग</h2><label>आज क्या खाया?</label><input id="meal" placeholder="जैसे दाल, रोटी, दही"><button class="secondary" onclick="addMeal()">भोजन जोड़ें</button><div id="meals" class="muted"></div></section>
+<section class="card"><h2>🏃 आज का वर्कआउट</h2>
+<div class="item"><input type="checkbox"> 5 मिनट हल्की वार्म-अप</div><div class="item"><input type="checkbox"> 10 मिनट वॉक</div><div class="item"><input type="checkbox"> 10 मिनट स्ट्रेचिंग</div><div class="item"><input type="checkbox"> 5 मिनट कूल-डाउन</div>
+<p class="muted">दर्द या चक्कर होने पर व्यायाम रोकें। अपनी क्षमता के अनुसार करें।</p></section>
+<section class="card"><h2>📚 पढ़ाई का लक्ष्य</h2><p>शाम 6 बजे से रात 12 बजे तक पढ़ाई का समय तय करें।</p><label>आज पढ़ाई के घंटे</label><input id="study" type="number" min="0" max="12" placeholder="जैसे 3"><button class="secondary" onclick="saveStudy()">सेव करें</button></section>
+<div class="quote">✨ छोटी-छोटी आदतें, बड़े बदलाव लाती हैं। आज बस कल से थोड़ा बेहतर बनें।</div>
+</main><footer>FitFlow Daily · आपका निजी फिटनेस ट्रैकर · डेटा इसी डिवाइस में सेव होता है</footer>
+<script>
+const key='fitflow-'+new Date().toISOString().slice(0,10);
+let data=JSON.parse(localStorage.getItem(key)||'{"water":0,"steps":0,"protein":0,"meals":[],"study":0}');
+document.getElementById('today').textContent=new Date().toLocaleDateString('hi-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+function render(){document.getElementById('water').textContent=data.water;document.getElementById('waterbar').style.width=Math.min(data.water/8*100,100)+'%';document.getElementById('stepsView').textContent=Number(data.steps||0).toLocaleString('en-IN');document.getElementById('stepsbar').style.width=Math.min((data.steps||0)/10000*100,100)+'%';document.getElementById('weightView').textContent=data.weight||'—';document.getElementById('proteinView').textContent=data.protein||0;document.getElementById('meals').innerHTML=(data.meals||[]).map(x=>'• '+escapeText(x)).join('<br>');}
+function save(){localStorage.setItem(key,JSON.stringify(data));render()}
+function addWater(){data.water=Math.min(20,data.water+1);save()}
+function saveLog(){data.weight=document.getElementById('weight').value||data.weight;data.steps=Number(document.getElementById('steps').value||data.steps);data.protein=Number(document.getElementById('protein').value||data.protein);save();document.getElementById('saved').textContent='रिकॉर्ड सेव हो गया।'}
+function addMeal(){let v=document.getElementById('meal').value.trim();if(v){data.meals.push(v);document.getElementById('meal').value='';save()}}
+function saveStudy(){data.study=Number(document.getElementById('study').value||0);save();document.getElementById('saved').textContent='पढ़ाई का रिकॉर्ड सेव हो गया।'}
+function escapeText(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+render();
+if('serviceWorker' in navigator) addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script></body></html>
